@@ -12,7 +12,7 @@ public class TaloudenTasapaino : Game
     Widget incomeTransactionWidget;
     Widget expenseTransactionWidget;
 
-    Widget draggedWidget = null;
+    GameObject draggedWidget = null;
 
     public override void Begin()
     {
@@ -20,40 +20,56 @@ public class TaloudenTasapaino : Game
         // One of the most typical mobile screen sizes
         SetWindowSize(800, 600);
 #endif
-
-        // Kirjoita ohjelmakoodisi tähän
-
+        // Controls and event listeners
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
         Mouse.Listen(MouseButton.Left, ButtonState.Down, CheckForDragStart, "Raahaa tuloja ja menoja paikoilleen");
         Mouse.Listen(MouseButton.Left, ButtonState.Up, CheckForDragEnd, "");
 
+        // Time meter bar
+        Widget topLevelWidget = new Widget(new VerticalLayout());
+        Meter timeMeter = new DoubleMeter(18, 0, 24);
+        ProgressBar availableTime = new ProgressBar(Screen.Width*0.75, 20, timeMeter);
+        topLevelWidget.Add(availableTime);
+        Add(topLevelWidget);
+        // -----------------------------------
+        // Income |  Snakey diagram | Expenses 
         Widget sectionsWidget = new Widget(new HorizontalLayout());
-        Add(sectionsWidget);
-
-        Meter incomeTimeMeter = new IntMeter(80, 0, 100);
-        incomeTransactionWidget = CreateListWidget(DataModel.defaultIncomes, incomeTimeMeter, Direction.Left);
+        incomeTransactionWidget = CreateListWidget(DataModel.defaultIncomes, Direction.Left);
         sectionsWidget.Add(incomeTransactionWidget);
-
-        sectionsWidget.Add(new Label(300, 300, "SNAKEY TBD"));
-
-        Meter expensesTimeMeter = new IntMeter(80, 0, 100);
-        expenseTransactionWidget = CreateListWidget(DataModel.defaultExpenses, incomeTimeMeter, Direction.Right);
+        sectionsWidget.Add(new Label(50, 250, "SNAKEY TBD"));
+        expenseTransactionWidget = CreateListWidget(DataModel.defaultExpenses, Direction.Right);
         sectionsWidget.Add(expenseTransactionWidget);
+        topLevelWidget.Add(sectionsWidget);
+        // -----------------------------------
     }
 
     private void CheckForDragStart()
     {
-
+        GameObject toDragObject = null;
+        foreach (var dragCandidate in GetObjectsAt(Mouse.PositionOnScreen))
+        {
+            if (dragCandidate.Tag == "TRANSACTION") 
+            {
+                toDragObject = dragCandidate;
+                break;
+            }
+        }
+        if (toDragObject != null)
+        {
+            draggedWidget = toDragObject;
+            draggedWidget.Parent.Remove(draggedWidget);
+            Add(draggedWidget);
+        }
     }
     private void CheckForDragEnd()
     {
-
+        draggedWidget = null;
     }
+
 
     private Widget CreateListWidget(
         List<DataModel.Transaction> transactions, 
-        Meter availableTimeMeter,
         Direction side)
     {
         double xPos = 0;
@@ -63,9 +79,6 @@ public class TaloudenTasapaino : Game
         Widget listWidget = new Widget(new VerticalLayout());
         listWidget.Position = new Vector(xPos, 0);
         listWidget.Height = Screen.Height / 2 * 3.0;
-
-        ProgressBar availableTime = new ProgressBar(300, 20, availableTimeMeter);
-        listWidget.Add(availableTime);
 
         foreach (var t in transactions)
         {
@@ -77,12 +90,6 @@ public class TaloudenTasapaino : Game
         return listWidget;
     }
 
-    void DragTransaction(Widget transaction)
-    {
-        draggedWidget = transaction;
-        transaction.Parent.Remove(transaction);
-    }
-
     protected override void Update(Time time)
     {
         base.Update(time);
@@ -90,6 +97,9 @@ public class TaloudenTasapaino : Game
         // Make sure the transaction lists are anchored to the top of the screen
         incomeTransactionWidget.Y = Screen.Height/2-(Screen.Height/6 + incomeTransactionWidget.Height/2);
         expenseTransactionWidget.Y = Screen.Height/2-(Screen.Height/6 + expenseTransactionWidget.Height/2);
+
+        if (draggedWidget != null)
+            draggedWidget.Position = Mouse.PositionOnScreen;
     }
 
 }
