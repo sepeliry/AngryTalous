@@ -9,89 +9,8 @@ using Jypeli.Widgets;
 
 public class TaloudenTasapaino : Game
 {
-    struct Stats
-    {
-        public double FreeTime;
-        public double Happiness;
-        public double Energy;
-        public double Health;
-        public double Money;
-    }
-
-    delegate bool CheckPrerequisites(List<Transaction> incomeTransactions, List<Transaction> expenseTransactions);
-
-    struct Transaction
-    {
-        public string label;
-        public Stats delta;
-        public CheckPrerequisites arePrerequsitesMet;
-    }
-
     Widget incomeTransactionWidget;
     Widget expenseTransactionWidget;
-
-    List<Transaction> defaultIncomes = new List<Transaction>
-    {
-        new Transaction()
-        { label="Kaupan kassa",
-          delta=new Stats{
-              FreeTime = -8,
-              Happiness = -4,
-              Energy = -10,
-              Health = -4,
-              Money = +1800
-          },
-          arePrerequsitesMet = (inc,exp)=>true // always true
-        },
-        new Transaction()
-        { label="Opintotuki",
-          delta=new Stats{
-              FreeTime = -4,
-              Happiness = 0,
-              Energy = -4,
-              Health = -2,
-              Money = +400
-          },
-          arePrerequsitesMet = (inc,exp)=>( exp.Any( t => t.label=="Opiskelua" ) )
-        }
-    };
-
-    List<Transaction> defaultExpenses = new List<Transaction>
-    {
-        new Transaction()
-        { label="Pizzaa",
-          delta=new Stats{
-              FreeTime = -1,
-              Happiness = +1,
-              Energy = +2,
-              Health = -2,
-              Money = -300
-          },
-          arePrerequsitesMet = (inc,exp)=>true // always true
-        },
-        new Transaction()
-        { label="Opiskelua",
-          delta=new Stats{
-              FreeTime = -4,
-              Happiness = 0,
-              Energy = -4,
-              Health = -2,
-              Money = -100
-          },
-          arePrerequsitesMet = (inc,exp)=>true // always true
-        },
-        new Transaction()
-        { label="Bussikortti",
-          delta=new Stats{
-              FreeTime = +4,
-              Happiness = +2,
-              Energy = +2,
-              Health = -2,
-              Money = -50
-          },
-          arePrerequsitesMet = (inc,exp)=>true // always true
-        }
-    };
 
     Widget draggedWidget = null;
 
@@ -109,10 +28,18 @@ public class TaloudenTasapaino : Game
         Mouse.Listen(MouseButton.Left, ButtonState.Down, CheckForDragStart, "Raahaa tuloja ja menoja paikoilleen");
         Mouse.Listen(MouseButton.Left, ButtonState.Up, CheckForDragEnd, "");
 
+        Widget sectionsWidget = new Widget(new HorizontalLayout());
+        Add(sectionsWidget);
+
         Meter incomeTimeMeter = new IntMeter(80, 0, 100);
-        incomeTransactionWidget = CreateListWidget(defaultIncomes, incomeTimeMeter, Direction.Left);
+        incomeTransactionWidget = CreateListWidget(DataModel.defaultIncomes, incomeTimeMeter, Direction.Left);
+        sectionsWidget.Add(incomeTransactionWidget);
+
+        sectionsWidget.Add(new Label(300, 300, "SNAKEY TBD"));
+
         Meter expensesTimeMeter = new IntMeter(80, 0, 100);
-        expenseTransactionWidget = CreateListWidget(defaultExpenses, incomeTimeMeter, Direction.Right);
+        expenseTransactionWidget = CreateListWidget(DataModel.defaultExpenses, incomeTimeMeter, Direction.Right);
+        sectionsWidget.Add(expenseTransactionWidget);
     }
 
     private void CheckForDragStart()
@@ -125,16 +52,15 @@ public class TaloudenTasapaino : Game
     }
 
     private Widget CreateListWidget(
-        List<Transaction> transactions, 
+        List<DataModel.Transaction> transactions, 
         Meter availableTimeMeter,
         Direction side)
     {
         double xPos = 0;
         if (side == Direction.Left) xPos = -Screen.Width / 4;
         if (side == Direction.Right) xPos = Screen.Width / 4;
-        
+
         Widget listWidget = new Widget(new VerticalLayout());
-        Add(listWidget);
         listWidget.Position = new Vector(xPos, 0);
         listWidget.Height = Screen.Height / 2 * 3.0;
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class DataModel
 {
-    struct Stats
+    public struct Stats
     {
         public double FreeTime;
         public double Happiness;
@@ -13,16 +13,16 @@ public class DataModel
         public double Money;
     }
 
-    delegate bool CheckPrerequisites(List<Transaction> incomeTransactions, List<Transaction> expenseTransactions);
+    public delegate bool CheckPrerequisites(List<Transaction> incomeTransactions, List<Transaction> expenseTransactions);
 
-    struct Transaction
+    public struct Transaction
     {
         public string label;
         public Stats delta;
         public CheckPrerequisites arePrerequsitesMet;
     }
 
-    static List<Transaction> defaultIncomes = new List<Transaction>
+    public static List<Transaction> defaultIncomes = new List<Transaction>
     {
         new Transaction()
         { label="Kaupan kassa",
@@ -48,7 +48,7 @@ public class DataModel
         }
     };
 
-    static List<Transaction> defaultExpenses = new List<Transaction>
+    public static List<Transaction> defaultExpenses = new List<Transaction>
     {
         new Transaction()
         { label="Pizzaa",
@@ -85,11 +85,11 @@ public class DataModel
         }
     };
 
-    static List<Transaction> incomeOptions = new List<Transaction>
+    public static List<Transaction> incomeOptions = new List<Transaction>
     {
         // TBD
     };
-    static List<Transaction> expenseOptions = new List<Transaction>
+    public static List<Transaction> expenseOptions = new List<Transaction>
     {
         // TBD
     };

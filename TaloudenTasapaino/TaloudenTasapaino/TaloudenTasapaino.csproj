@@ -110,6 +110,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Skenaario.cs" />
     <Compile Include="TaloudenTasapaino.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ohjelma.cs" />
