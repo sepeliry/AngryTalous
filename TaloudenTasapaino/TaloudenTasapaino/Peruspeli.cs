@@ -23,13 +23,14 @@ public class TaloudenTasapaino : Game
         // Controls and event listeners
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
+
         Mouse.Listen(MouseButton.Left, ButtonState.Down, CheckForDragStart, "Raahaa tuloja ja menoja paikoilleen");
         Mouse.Listen(MouseButton.Left, ButtonState.Up, CheckForDragEnd, "");
 
         // Time meter bar
         Widget topLevelWidget = new Widget(new VerticalLayout());
         Meter timeMeter = new DoubleMeter(18, 0, 24);
-        ProgressBar availableTime = new ProgressBar(Screen.Width*0.75, 20, timeMeter);
+        ProgressBar availableTime = new ProgressBar(Screen.Width * 0.75, 20, timeMeter);
         topLevelWidget.Add(availableTime);
         Add(topLevelWidget);
         // -----------------------------------
@@ -49,7 +50,7 @@ public class TaloudenTasapaino : Game
         GameObject toDragObject = null;
         foreach (var dragCandidate in GetObjectsAt(Mouse.PositionOnScreen))
         {
-            if (dragCandidate.Tag == "TRANSACTION") 
+            if (dragCandidate.Tag == "TRANSACTION")
             {
                 toDragObject = dragCandidate;
                 break;
@@ -69,7 +70,7 @@ public class TaloudenTasapaino : Game
 
 
     private Widget CreateListWidget(
-        List<DataModel.Transaction> transactions, 
+        List<DataModel.Transaction> transactions,
         Direction side)
     {
         double xPos = 0;
@@ -95,8 +96,8 @@ public class TaloudenTasapaino : Game
         base.Update(time);
 
         // Make sure the transaction lists are anchored to the top of the screen
-        incomeTransactionWidget.Y = Screen.Height/2-(Screen.Height/6 + incomeTransactionWidget.Height/2);
-        expenseTransactionWidget.Y = Screen.Height/2-(Screen.Height/6 + expenseTransactionWidget.Height/2);
+        incomeTransactionWidget.Y = Screen.Height / 2 - (Screen.Height / 6 + incomeTransactionWidget.Height / 2);
+        expenseTransactionWidget.Y = Screen.Height / 2 - (Screen.Height / 6 + expenseTransactionWidget.Height / 2);
 
         if (draggedWidget != null)
             draggedWidget.Position = Mouse.PositionOnScreen;

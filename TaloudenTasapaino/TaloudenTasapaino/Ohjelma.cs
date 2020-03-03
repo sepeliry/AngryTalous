@@ -1,17 +1,24 @@
+﻿#region Using Statements
 using System;
+using System.Collections.Generic;
+using System.Linq;
+#endregion
 
-static class Ohjelma
+namespace Program
 {
-#if WINDOWS || XBOX
-    static void Main(string[] args)
+    /// <summary>
+    /// The main class.
+    /// </summary>
+    public static class Program
     {
-        using (TaloudenTasapaino game = new TaloudenTasapaino())
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
         {
-#if !DEBUG
-            game.IsFullScreen = true;
-#endif
-            game.Run();
+            using (var game = new TaloudenTasapaino())
+                game.Run();
         }
     }
-#endif
 }
