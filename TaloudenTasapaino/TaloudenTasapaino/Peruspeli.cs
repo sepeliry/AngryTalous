@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Jypeli;
@@ -9,8 +9,8 @@ using Jypeli.Widgets;
 
 public class TaloudenTasapaino : Game
 {
-    Widget incomeTransactionWidget;
-    Widget expenseTransactionWidget;
+    List<GameObject> incomeTransactionBoxes;
+    List<GameObject> expenseTransactionBoxes;
 
     GameObject draggedWidget = null;
 
@@ -24,25 +24,24 @@ public class TaloudenTasapaino : Game
         PhoneBackButton.Listen(ConfirmExit, "Lopeta peli");
         Keyboard.Listen(Key.Escape, ButtonState.Pressed, ConfirmExit, "Lopeta peli");
 
-        Mouse.Listen(MouseButton.Left, ButtonState.Down, CheckForDragStart, "Raahaa tuloja ja menoja paikoilleen");
-        Mouse.Listen(MouseButton.Left, ButtonState.Up, CheckForDragEnd, "");
+        Mouse.Listen(MouseButton.Left, ButtonState.Pressed, CheckForDragStart, "Raahaa tuloja ja menoja paikoilleen");
+        Mouse.Listen(MouseButton.Left, ButtonState.Released, CheckForDragEnd, "");
 
         // Time meter bar
-        Widget topLevelWidget = new Widget(new VerticalLayout());
         Meter timeMeter = new DoubleMeter(18, 0, 24);
-        ProgressBar availableTime = new ProgressBar(Screen.Width * 0.75, 20, timeMeter);
-        topLevelWidget.Add(availableTime);
-        Add(topLevelWidget);
+        ProgressBar availableTime = new ProgressBar(Screen.Width * 0.85, 20, timeMeter);
+        availableTime.Color = Color.LightCyan;
+        availableTime.Position = new Vector(0, 0.33 * Screen.Height);
+        Add(availableTime);
+
         // -----------------------------------
         // Income |  Snakey diagram | Expenses 
-        Widget sectionsWidget = new Widget(new HorizontalLayout());
-        incomeTransactionWidget = CreateListWidget(DataModel.defaultIncomes, Direction.Left);
-        sectionsWidget.Add(incomeTransactionWidget);
-        sectionsWidget.Add(new Label(50, 250, "SNAKEY TBD"));
-        expenseTransactionWidget = CreateListWidget(DataModel.defaultExpenses, Direction.Right);
-        sectionsWidget.Add(expenseTransactionWidget);
-        topLevelWidget.Add(sectionsWidget);
+        incomeTransactionBoxes = CreateTransactionBoxes(DataModel.defaultIncomes, Direction.Left);
+        expenseTransactionBoxes = CreateTransactionBoxes(DataModel.defaultExpenses, Direction.Right);
         // -----------------------------------
+
+        LayoutTransactionBoxes(incomeTransactionBoxes);
+        LayoutTransactionBoxes(expenseTransactionBoxes);
     }
 
     private void CheckForDragStart()
@@ -59,8 +58,8 @@ public class TaloudenTasapaino : Game
         if (toDragObject != null)
         {
             draggedWidget = toDragObject;
-            draggedWidget.Parent.Remove(draggedWidget);
-            Add(draggedWidget);
+            if (incomeTransactionBoxes.Contains(draggedWidget)) incomeTransactionBoxes.Remove(draggedWidget);
+            if (expenseTransactionBoxes.Contains(draggedWidget)) expenseTransactionBoxes.Remove(draggedWidget);
         }
     }
     private void CheckForDragEnd()
@@ -69,26 +68,30 @@ public class TaloudenTasapaino : Game
     }
 
 
-    private Widget CreateListWidget(
+    private List<GameObject> CreateTransactionBoxes(
         List<DataModel.Transaction> transactions,
         Direction side)
     {
+        var boxList = new List<GameObject>();
+
+        GameObject anchorObject = new GameObject(Screen.Width * 0.35, 5);
+        anchorObject.Color = Color.Transparent;
         double xPos = 0;
         if (side == Direction.Left) xPos = -Screen.Width / 4;
         if (side == Direction.Right) xPos = Screen.Width / 4;
-
-        Widget listWidget = new Widget(new VerticalLayout());
-        listWidget.Position = new Vector(xPos, 0);
-        listWidget.Height = Screen.Height / 2 * 3.0;
+        anchorObject.Position = new Vector(xPos, Screen.Height * 0.3);
+        Add(anchorObject);
+        boxList.Add(anchorObject);
 
         foreach (var t in transactions)
         {
-            var box = new Label(300, Math.Abs(t.delta.Money / 5), t.label);
+            var box = new Label(Screen.Width * 0.35, Math.Abs(t.delta.Money / 5), t.label);
             box.Color = RandomGen.NextLightColor();
             box.Tag = "TRANSACTION";
-            listWidget.Add(box);
+            boxList.Add(box);
+            Add(box);
         }
-        return listWidget;
+        return boxList;
     }
 
     protected override void Update(Time time)
@@ -96,11 +99,26 @@ public class TaloudenTasapaino : Game
         base.Update(time);
 
         // Make sure the transaction lists are anchored to the top of the screen
-        incomeTransactionWidget.Y = Screen.Height / 2 - (Screen.Height / 6 + incomeTransactionWidget.Height / 2);
-        expenseTransactionWidget.Y = Screen.Height / 2 - (Screen.Height / 6 + expenseTransactionWidget.Height / 2);
+        double y = incomeTransactionBoxes[0].Y + incomeTransactionBoxes[0].Height / 2;
+
+        LayoutTransactionBoxes(incomeTransactionBoxes);
+        LayoutTransactionBoxes(expenseTransactionBoxes);
 
         if (draggedWidget != null)
             draggedWidget.Position = Mouse.PositionOnScreen;
     }
 
+    private void LayoutTransactionBoxes(List<GameObject> transactionBoxes)
+    {
+        var anchorObject = transactionBoxes[0];
+        double y = anchorObject.Y - anchorObject.Height / 2;
+        foreach (var transactionBox in transactionBoxes)
+        {
+            if (transactionBox.Tag != "TRANSACTION") continue;
+
+            transactionBox.Y = y - transactionBox.Height / 2;
+            transactionBox.X = anchorObject.X;
+            y -= transactionBox.Height;
+        }
+    }
 }
