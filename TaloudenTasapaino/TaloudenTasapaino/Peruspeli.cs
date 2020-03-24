@@ -12,6 +12,8 @@ public class TaloudenTasapaino : Game
     List<GameObject> incomeTransactionBoxes;
     List<GameObject> expenseTransactionBoxes;
 
+    Dictionary<GameObject, List<GameObject>> dropAreaToTransactionList;
+
     GameObject draggedWidget = null;
 
     public override void Begin()
@@ -39,9 +41,24 @@ public class TaloudenTasapaino : Game
         incomeTransactionBoxes = CreateTransactionBoxes(DataModel.defaultIncomes, Direction.Left);
         expenseTransactionBoxes = CreateTransactionBoxes(DataModel.defaultExpenses, Direction.Right);
         // -----------------------------------
-
+        
         LayoutTransactionBoxes(incomeTransactionBoxes);
         LayoutTransactionBoxes(expenseTransactionBoxes);
+
+        GameObject incomeDropBox = CreateDropArea(incomeTransactionBoxes[0]);
+        GameObject expenseDropBox = CreateDropArea(expenseTransactionBoxes[0]);
+        dropAreaToTransactionList = new Dictionary<GameObject, List<GameObject>>();
+        dropAreaToTransactionList.Add(incomeDropBox, incomeTransactionBoxes);
+        dropAreaToTransactionList.Add(expenseDropBox, expenseTransactionBoxes);
+    }
+
+    private GameObject CreateDropArea(GameObject anchor)
+    {
+        GameObject dropArea = new GameObject(anchor.Width, Screen.Height * 3 / 4.0);
+        dropArea.Position = new Vector(anchor.X, anchor.Y - anchor.Height / 2 - dropArea.Height / 2);
+        dropArea.Tag = "DROP_HERE";
+        Add(dropArea, -1);
+        return dropArea;
     }
 
     private void CheckForDragStart()
@@ -64,9 +81,26 @@ public class TaloudenTasapaino : Game
     }
     private void CheckForDragEnd()
     {
+        GameObject toDropTo = null;
+        foreach (var toDropToCandidate in GetObjectsAt(Mouse.PositionOnScreen))
+        {
+            if (toDropToCandidate.Tag == "DROP_HERE")
+            {
+                toDropTo = toDropToCandidate;
+                break;
+            }
+        }
+        if (toDropTo != null && dropAreaToTransactionList.ContainsKey(toDropTo))
+        {
+            List<GameObject> transactionList = dropAreaToTransactionList[toDropTo];
+            transactionList.Add(draggedWidget);
+        }
+        else
+        {
+            //TODO: Return the dragged object to where it originated from.
+        }
         draggedWidget = null;
     }
-
 
     private List<GameObject> CreateTransactionBoxes(
         List<DataModel.Transaction> transactions,
